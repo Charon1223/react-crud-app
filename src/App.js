@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
@@ -6,22 +6,40 @@ import Alert from "./components/Alert";
 
 const App = () => {
 
+  const initialExpenses = (() => {
+    const storedExpenses = localStorage.getItem('expenses');
+    try {
+      return storedExpenses ? JSON.parse(storedExpenses) : [
+        {
+          id: 2,
+          charge: '빵',
+          amount: 1000
+        },
+        {
+          id: 3,
+          charge: '맥북',
+          amount: 20000
+        },
+      ];
+    } catch (error) {
+      console.error('Error parsing stored expenses:', error);
+      return [
+        {
+          id: 2,
+          charge: '빵',
+          amount: 1000
+        },
+        {
+          id: 3,
+          charge: '맥북',
+          amount: 20000
+        },
+      ];
+  }
+  })();
 
-  const [expenses, setExpense] = useState([
-    { 
-      id: 1, 
-      charge: '콜라', 
-      amount: 2000 
-    },
-    { id: 2, 
-      charge: '빵', 
-      amount: 1000 
-    },
-    { id: 3, 
-      charge: '맥북', 
-      amount: 20000 
-    },
-  ])
+  const [expenses, setExpense] = useState(initialExpenses);
+
 
   const [charge, setCharge] = useState("");
   const [amount, setAmount] = useState(0);
@@ -30,6 +48,11 @@ const App = () => {
   const [edit, setEdit] = useState(false);
 
   const [alert, setAlert] = useState({show: false});
+
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
 
   const handleEdit = id => {
     const expense = expenses.find(item => item.id === id);
@@ -67,7 +90,7 @@ const App = () => {
         setEdit(false);
         handleAlert({ type: "success", text: "아이템이 수정되었습니다." });
       } else {
-        const newExpense = {id: crypto.randomUUID, charge, amount}
+        const newExpense = {id: crypto.randomUUID(), charge, amount}
         const newExpenses = [...expenses, newExpense];
         setExpense(newExpenses);
         handleAlert({ type: "success", text: "아이템이 생성되었습니다."});
